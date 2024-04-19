@@ -1,6 +1,10 @@
 const axios = require("axios");
-
-// let nextBlockNumber;
+const { ethers } = require("ethers");
+const MegalandMarketabi = require("./abis/MegalandMarket.json");
+const provider = new ethers.providers.JsonRpcProvider(
+  "https://rpc.bitkubchain.io"
+);
+const megalandContractAddress = "0x874987257374cAE9E620988FdbEEa2bBBf757cA9";
 const baseUrl =
   "https://www.bkcscan.com/api/v2/addresses/0x874987257374cAE9E620988FdbEEa2bBBf757cA9/logs";
 
@@ -39,6 +43,17 @@ async function findTargetBlock(numberOfBlocks) {
   return currentBlock - numberOfBlocks;
 }
 
+async function queryIdToisting(listingId) {
+  const contract = new ethers.Contract(
+    megalandContractAddress,
+    MegalandMarketabi,
+    provider
+  );
+  const result = await contract["idToListing"](listingId);
+  //   console.log(parseInt(result.price._hex, 16));
+  return parseInt(result.price._hex, 16);
+}
+
 async function main() {
   const numberOfDays = 0.1; // change here
   const numberOfBlocks = numberOfDays * 17280; // Block per day is 17280
@@ -69,7 +84,7 @@ async function main() {
     nextPage = await filterOnlyItemmSold(nextPage);
     eventLogs.push(...nextPage);
   }
-  console.log(eventLogs[0].decoded);
+  console.log(await queryIdToisting(eventLogs[1].decoded.parameters[5].value));
   console.log("Query from last :", numberOfDays, "days");
   console.log("Start at block :", targetBlock);
   console.log("Total NFTs sold :", eventLogs.length);
