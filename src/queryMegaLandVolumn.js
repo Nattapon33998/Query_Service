@@ -46,6 +46,7 @@ async function main() {
 
   let eventLogs = [];
 
+  // Query first page
   let firstPage = await axios.get(baseUrl);
   let nextBlockNumber = firstPage.data.next_page_params.block_number;
   let nextIndex = firstPage.data.next_page_params.index;
@@ -54,6 +55,7 @@ async function main() {
   firstPage = await filterOnlyItemmSold(firstPage.data);
   eventLogs = [...firstPage];
 
+  // Query other page
   while (nextBlockNumber > targetBlock) {
     let nextPage = await queryNextPage(
       nextBlockNumber,
@@ -67,9 +69,10 @@ async function main() {
     nextPage = await filterOnlyItemmSold(nextPage);
     eventLogs.push(...nextPage);
   }
-  console.log("start at block : ", targetBlock);
-  console.log(eventLogs);
-  console.log(eventLogs.length);
+  console.log(eventLogs[0].decoded);
+  console.log("Query from last :", numberOfDays, "days");
+  console.log("Start at block :", targetBlock);
+  console.log("Total NFTs sold :", eventLogs.length);
 }
 
 main()
