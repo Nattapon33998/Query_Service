@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { ethers } = require("ethers");
 const MegalandMarketabi = require("./abis/MegalandMarket.json");
+const TookenNameabi = require("./abis/TokenName.json");
 const provider = new ethers.providers.JsonRpcProvider(
   "https://rpc.bitkubchain.io"
 );
@@ -43,15 +44,24 @@ async function findTargetBlock(numberOfBlocks) {
   return currentBlock - numberOfBlocks;
 }
 
-async function queryIdToisting(listingId) {
+async function queryIdToListing(listingId) {
+  let exchangeToken = "KUB";
   const contract = new ethers.Contract(
     megalandContractAddress,
     MegalandMarketabi,
     provider
   );
   const result = await contract["idToListing"](listingId);
-  //   console.log(parseInt(result.price._hex, 16));
-  return parseInt(result.price._hex, 16);
+  console.log(result);
+  if (result.exchangeToken != null) {
+    const tokenContract = new ethers.Contract(
+      result.exchangeToken,
+      TookenNameabi,
+      provider
+    );
+    exchangeToken = await tokenContract["name"]();
+  }
+  return { exchangeToken, price: parseInt(result.price._hex, 16) };
 }
 
 async function main() {
@@ -84,7 +94,7 @@ async function main() {
     nextPage = await filterOnlyItemmSold(nextPage);
     eventLogs.push(...nextPage);
   }
-  console.log(await queryIdToisting(eventLogs[1].decoded.parameters[5].value));
+  console.log(await queryIdToListing(eventLogs[1].decoded.parameters[5].value));
   console.log("Query from last :", numberOfDays, "days");
   console.log("Start at block :", targetBlock);
   console.log("Total NFTs sold :", eventLogs.length);
