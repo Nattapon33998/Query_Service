@@ -52,7 +52,7 @@ async function queryIdToListing(listingId) {
     provider
   );
   const result = await contract["idToListing"](listingId);
-  console.log(result);
+  //   console.log(result);
   if (result.exchangeToken != null) {
     const tokenContract = new ethers.Contract(
       result.exchangeToken,
@@ -60,18 +60,26 @@ async function queryIdToListing(listingId) {
       provider
     );
     exchangeToken = await tokenContract["name"]();
+    exchangeToken = String(exchangeToken);
+    // console.log(exchangeToken);
   }
-  return { exchangeToken, price: parseInt(result.price._hex, 16) };
+  console.log({ exchangeToken, price: parseInt(result.price._hex, 16) });
+  return {
+    exchangeToken,
+    price: parseInt(result.price._hex, 16),
+  };
 }
 
 async function main() {
-  const numberOfDays = 0.1; // change here
+  const numberOfDays = 1; // change here
   const numberOfBlocks = numberOfDays * 17280; // Block per day is 17280
   const targetBlock = await findTargetBlock(numberOfBlocks);
 
   let eventLogs = [];
+  let exchangeTokenList = {};
 
   // Query first page
+  console.log("Query event in process...");
   let firstPage = await axios.get(baseUrl);
   let nextBlockNumber = firstPage.data.next_page_params.block_number;
   let nextIndex = firstPage.data.next_page_params.index;
@@ -94,10 +102,21 @@ async function main() {
     nextPage = await filterOnlyItemmSold(nextPage);
     eventLogs.push(...nextPage);
   }
-  console.log(await queryIdToListing(eventLogs[1].decoded.parameters[5].value));
-  console.log("Query from last :", numberOfDays, "days");
+
+  for (i in eventLogs) {
+    let { exchangeToken, price } = await queryIdToListing(
+      eventLogs[i].decoded.parameters[5].value
+    );
+    if (exchangeTokenList.hasOwnProperty(exchangeToken)) {
+      exchangeTokenList[exchangeToken] += price / 10 ** 18;
+    } else {
+      exchangeTokenList[exchangeToken] = price / 10 ** 18;
+    }
+  }
+  console.log("\nQuery from last :", numberOfDays, "days");
   console.log("Start at block :", targetBlock);
   console.log("Total NFTs sold :", eventLogs.length);
+  console.table(exchangeTokenList);
 }
 
 main()
