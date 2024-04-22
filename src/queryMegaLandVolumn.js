@@ -71,7 +71,9 @@ async function queryIdToListing(listingId) {
 }
 
 async function main() {
-  const numberOfDays = 1; // change here
+  const args = process.argv;
+  const userInput = args.slice(2);
+  const numberOfDays = userInput[0]; // change here
   const numberOfBlocks = numberOfDays * 17280; // Block per day is 17280
   const targetBlock = await findTargetBlock(numberOfBlocks);
 
@@ -108,10 +110,19 @@ async function main() {
       eventLogs[i].decoded.parameters[5].value
     );
     if (exchangeTokenList.hasOwnProperty(exchangeToken)) {
-      exchangeTokenList[exchangeToken] += price / 10 ** 18;
+      exchangeTokenList[exchangeToken] = {
+        value: (exchangeTokenList[exchangeToken].value += price),
+        quantity: (exchangeTokenList[exchangeToken].quantity += 1),
+      };
     } else {
-      exchangeTokenList[exchangeToken] = price / 10 ** 18;
+      exchangeTokenList[exchangeToken] = {
+        value: price,
+        quantity: 1,
+      };
     }
+  }
+  for (i in exchangeTokenList) {
+    exchangeTokenList[i].value = exchangeTokenList[i].value / 10 ** 18;
   }
   console.log("\nQuery from last :", numberOfDays, "days");
   console.log("Start at block :", targetBlock);
