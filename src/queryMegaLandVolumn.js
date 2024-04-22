@@ -63,7 +63,10 @@ async function queryIdToListing(listingId) {
     exchangeToken = String(exchangeToken);
     // console.log(exchangeToken);
   }
-  console.log({ exchangeToken, price: parseInt(result.price._hex, 16) });
+  console.log({
+    exchangeToken,
+    price: parseInt(result.price._hex, 16),
+  });
   return {
     exchangeToken,
     price: parseInt(result.price._hex, 16),
@@ -73,7 +76,7 @@ async function queryIdToListing(listingId) {
 async function main() {
   const args = process.argv;
   const userInput = args.slice(2);
-  const numberOfDays = userInput[0]; // change here
+  const numberOfDays = userInput[0];
   const numberOfBlocks = numberOfDays * 17280; // Block per day is 17280
   const targetBlock = await findTargetBlock(numberOfBlocks);
 
@@ -121,12 +124,17 @@ async function main() {
       };
     }
   }
-  for (i in exchangeTokenList) {
-    exchangeTokenList[i].value = exchangeTokenList[i].value / 10 ** 18;
-  }
+
   console.log("\nQuery from last :", numberOfDays, "days");
   console.log("Start at block :", targetBlock);
   console.log("Total NFTs sold :", eventLogs.length);
+  for (i in exchangeTokenList) {
+    exchangeTokenList[i].value = (
+      exchangeTokenList[i].value /
+      10 ** 18
+    ).toFixed(4);
+    exchangeTokenList[i].value = Number(exchangeTokenList[i].value);
+  }
   console.table(exchangeTokenList);
 }
 
