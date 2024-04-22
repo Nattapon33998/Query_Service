@@ -1,6 +1,6 @@
 # Query_Service
 
-- This project is use to query Mehalan Volumn
+- This project is use to query Megaland trade volumn
 
 # How to setup
 
