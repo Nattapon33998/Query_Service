@@ -1,7 +1,7 @@
 const axios = require("axios");
 const { ethers } = require("ethers");
 const MegalandMarketabi = require("./abis/MegalandMarket.json");
-const TookenNameabi = require("./abis/TokenName.json");
+const TokenNameabi = require("./abis/TokenName.json");
 const provider = new ethers.providers.JsonRpcProvider(
   "https://rpc.bitkubchain.io"
 );
@@ -35,6 +35,7 @@ async function queryNextPage(block_number, index, items_count) {
       "&items_count" +
       items_count,
   });
+  process.stdout.write(".");
   return nextPage.data;
 }
 
@@ -52,17 +53,17 @@ async function queryIdToListing(listingId) {
     provider
   );
   const result = await contract["idToListing"](listingId);
-  //   console.log(result);
   if (result.exchangeToken != null) {
     const tokenContract = new ethers.Contract(
       result.exchangeToken,
-      TookenNameabi,
+      TokenNameabi,
       provider
     );
     exchangeToken = await tokenContract["name"]();
     exchangeToken = String(exchangeToken);
-    // console.log(exchangeToken);
   }
+
+  console.log("\nListingID :", listingId);
   console.log({
     exchangeToken,
     price: parseInt(result.price._hex, 16),

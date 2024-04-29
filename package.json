@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:mega": "node src/queryMegaLandVolumn.js"
+    "start:mega": "node src/queryMegaLandVolumn/index.js"
   },
   "author": "",
   "license": "ISC",
